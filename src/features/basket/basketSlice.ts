@@ -8,11 +8,24 @@ interface BasketState {
   items: BasketEntry[];
 }
 
-const initialState: BasketState = {
-  items: products.map((product) => ({
+const createEmptyBasketItems = (): BasketEntry[] =>
+  products.map((product) => ({
     productId: product.id,
     quantity: 0,
-  })),
+  }));
+
+const normalizeBasketItems = (items: BasketEntry[]): BasketEntry[] =>
+  products.map((product) => {
+    const matchingItem = items.find((item) => item.productId === product.id);
+
+    return {
+      productId: product.id,
+      quantity: Math.max(0, matchingItem?.quantity ?? 0),
+    };
+  });
+
+const initialState: BasketState = {
+  items: createEmptyBasketItems(),
 };
 
 const basketSlice = createSlice({
@@ -36,10 +49,13 @@ const basketSlice = createSlice({
         item.quantity = 0;
       });
     },
+    setBasket: (state, action: PayloadAction<BasketEntry[]>) => {
+      state.items = normalizeBasketItems(action.payload);
+    },
   },
 });
 
-export const { addItem, removeItem, clearBasket } = basketSlice.actions;
+export const { addItem, removeItem, clearBasket, setBasket } = basketSlice.actions;
 
 export const selectBasketItems = (state: RootState) => state.basket.items;
 

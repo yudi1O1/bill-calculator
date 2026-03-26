@@ -133,7 +133,8 @@ button {
 .offer-card,
 .basket-line,
 .totals-card,
-.empty-state {
+.empty-state,
+.sync-card {
   border-radius: 20px;
 }
 
@@ -241,6 +242,35 @@ button {
 .offer-card--note {
   background: linear-gradient(135deg, #f0fdf4, #ffffff);
   border-color: rgba(34, 197, 94, 0.2);
+}
+
+.sync-card {
+  margin-bottom: 20px;
+  padding: 18px;
+  background: linear-gradient(135deg, #ecfeff, #ffffff);
+  border: 1px solid rgba(14, 165, 233, 0.18);
+}
+
+.sync-card__header,
+.sync-card__actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sync-card__actions {
+  justify-content: flex-end;
+}
+
+.sync-card__status,
+.sync-card__meta {
+  margin: 12px 0 0;
+  color: #475569;
+}
+
+.sync-card__meta {
+  font-size: 0.92rem;
 }
 
 .basket-line {
@@ -373,6 +403,8 @@ button {
   }
 
   .panel__header,
+  .sync-card__header,
+  .sync-card__actions,
   .product-card__top,
   .product-card__footer,
   .basket-line__main,
