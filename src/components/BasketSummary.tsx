@@ -199,12 +199,12 @@ export const BasketSummary = () => {
                   </div>
 
                   <div className="mt-3 flex items-center justify-between gap-4 text-slate-600">
-                    <span>Offer saving</span>
+                    <span className="font-semibold text-slate-800">Offer saving</span>
                     <strong className="text-slate-900">{formatCurrency(offerSavings)}</strong>
                   </div>
 
                   {lineOffers.length > 0 ? (
-                    <div className="mt-3 space-y-1 text-sm text-slate-600">
+                    <div className="mt-3 space-y-1 text-sm text-red-600">
                       {lineOffers.map((offer) => (
                         <p key={offer.id}>{offer.title}</p>
                       ))}
