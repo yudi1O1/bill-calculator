@@ -136,7 +136,7 @@ export const BasketSummary = () => {
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-blue-600">
               Firebase
             </p>
-            <h3 className="text-2xl font-semibold text-slate-900">Basket persistence</h3>
+            <h3 className="text-2xl font-semibold text-slate-900">Saved Items</h3>
           </div>
 
           <div className="flex items-start gap-3">
