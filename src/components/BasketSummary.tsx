@@ -17,13 +17,13 @@ import {
 import { formatCurrency } from "../utils/currency";
 
 const ghostButtonClass =
-  "inline-flex items-center justify-center rounded-[14px] border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-700 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0";
+  "inline-flex items-center justify-center border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-55";
 
 const primaryButtonClass =
-  "inline-flex items-center justify-center rounded-[14px] bg-linear-to-r from-blue-600 to-slate-900 px-4 py-2.5 font-semibold text-white shadow-[0_10px_18px_rgba(37,99,235,0.18)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0";
+  "inline-flex items-center justify-center border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-55";
 
 const pillClass =
-  "inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700";
+  "inline-flex items-center justify-center border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700";
 
 function getStatusMessage(error: unknown, fallbackMessage: string) {
   if (error instanceof Error) {
@@ -112,13 +112,13 @@ export const BasketSummary = () => {
   }, []);
 
   return (
-    <section className="mt-6 rounded-3xl border border-slate-200/70 bg-white/85 p-6 shadow-[0_18px_34px_rgba(15,23,42,0.06)] backdrop-blur-xl">
+    <section className="mt-6 border border-slate-300 bg-white p-5">
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-blue-600">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">
             Billing details
           </p>
-          <h2 className="text-3xl font-semibold text-slate-900">Basket</h2>
+          <h2 className="text-2xl font-semibold text-slate-900">Basket</h2>
         </div>
         <button
           className={ghostButtonClass}
@@ -130,13 +130,13 @@ export const BasketSummary = () => {
         </button>
       </div>
 
-      <div className="mb-5 rounded-[20px] border border-sky-200/70 bg-linear-to-br from-cyan-50 to-white p-[18px]">
+      <div className="mb-5 border border-slate-300 bg-slate-50 p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-blue-600">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">
               Firebase
             </p>
-            <h3 className="text-2xl font-semibold text-slate-900">Saved Items</h3>
+            <h3 className="text-xl font-semibold text-slate-900">Saved Items</h3>
           </div>
 
           <div className="flex items-start gap-3">
@@ -168,9 +168,9 @@ export const BasketSummary = () => {
       </div>
 
       {summary.lineItems.length === 0 ? (
-        <div className="rounded-[20px] border border-dashed border-blue-300 bg-linear-to-br from-blue-50 to-white p-6">
-          <h3 className="text-2xl font-semibold text-slate-900">No products selected</h3>
-          <p className="mt-2 text-slate-500">
+        <div className="border border-dashed border-slate-300 bg-white p-6">
+          <h3 className="text-xl font-semibold text-slate-900">No products selected</h3>
+          <p className="mt-2 text-slate-600">
             Add products from the left panel to generate the bill automatically.
           </p>
         </div>
@@ -202,20 +202,20 @@ export const BasketSummary = () => {
 
               return (
                 <article
-                  className="rounded-[20px] border border-slate-200 bg-white p-[18px]"
+                  className="border border-slate-300 bg-white p-4"
                   key={item.product.id}
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <h3 className="text-xl font-semibold text-slate-900">{item.product.name}</h3>
-                      <p className="text-slate-500">
+                      <p className="text-slate-600">
                         {formatCurrency(item.product.price)} x {item.quantity}
                       </p>
                     </div>
 
                     <div className="inline-flex items-center gap-2.5">
                       <button
-                        className="flex h-[38px] w-[38px] items-center justify-center rounded-xl bg-blue-50 text-xl font-extrabold text-blue-700 transition hover:-translate-y-0.5"
+                        className="flex h-[38px] w-[38px] items-center justify-center border border-slate-300 bg-white text-xl font-bold text-slate-700"
                         type="button"
                         onClick={() => dispatch(removeItem(item.product.id))}
                       >
@@ -225,7 +225,7 @@ export const BasketSummary = () => {
                         {item.quantity}
                       </span>
                       <button
-                        className="flex h-[38px] w-[38px] items-center justify-center rounded-xl bg-blue-50 text-xl font-extrabold text-blue-700 transition hover:-translate-y-0.5"
+                        className="flex h-[38px] w-[38px] items-center justify-center border border-slate-300 bg-white text-xl font-bold text-slate-700"
                         type="button"
                         onClick={() => dispatch(addItem(item.product.id))}
                       >
@@ -241,7 +241,7 @@ export const BasketSummary = () => {
 
                   <div className="mt-3 flex items-center justify-between gap-4 text-slate-600">
                     <span>Offer saving</span>
-                    <strong className="text-red-600">{formatCurrency(offerSavings)}</strong>
+                    <strong className="text-slate-900">{formatCurrency(offerSavings)}</strong>
                   </div>
 
                   {lineOffers.length > 0 ? (
@@ -258,46 +258,46 @@ export const BasketSummary = () => {
             })}
           </div>
 
-          <div className="mt-5 rounded-[20px] bg-linear-to-b from-slate-900 to-slate-800 p-[22px] text-slate-200">
-            <h3 className="mb-4 text-2xl font-semibold text-white">Bill summary</h3>
+          <div className="mt-5 border border-slate-300 bg-slate-100 p-5 text-slate-800">
+            <h3 className="mb-4 text-xl font-semibold text-slate-900">Bill summary</h3>
 
             <div className="flex items-center justify-between gap-4 py-2.5">
               <span>Subtotal before offers</span>
-              <strong className="text-white">{formatCurrency(summary.subtotal)}</strong>
+              <strong className="text-slate-900">{formatCurrency(summary.subtotal)}</strong>
             </div>
 
-            <div className="mt-2 border-y border-slate-500/30 py-3">
-              <p className="mb-2 text-slate-300">Special offers applied</p>
+            <div className="mt-2 border-y border-slate-300 py-3">
+              <p className="mb-2 text-slate-600">Special offers applied</p>
 
               {summary.appliedOffers.length > 0 ? (
                 summary.appliedOffers.map((offer) => (
                   <div
-                    className="flex items-center justify-between gap-4 py-2.5 text-emerald-300"
+                    className="flex items-center justify-between gap-4 py-2.5 text-slate-700"
                     key={offer.id}
                   >
                     <span className="inline-flex flex-wrap items-center gap-2.5">
                       <span className={pillClass}>{offer.badge}</span>
                       <span>{offer.title}</span>
                     </span>
-                    <strong className="text-emerald-300">-{formatCurrency(offer.savings)}</strong>
+                    <strong className="text-slate-900">-{formatCurrency(offer.savings)}</strong>
                   </div>
                 ))
               ) : (
-                <div className="flex items-center justify-between gap-4 py-2.5 text-slate-300">
+                <div className="flex items-center justify-between gap-4 py-2.5 text-slate-600">
                   <span>No offers matched this basket</span>
-                  <strong className="text-white">{formatCurrency(0)}</strong>
+                  <strong className="text-slate-900">{formatCurrency(0)}</strong>
                 </div>
               )}
             </div>
 
             <div className="flex items-center justify-between gap-4 py-2.5">
               <span>Total savings</span>
-              <strong className="text-emerald-300">{formatCurrency(summary.totalSavings)}</strong>
+              <strong className="text-slate-900">{formatCurrency(summary.totalSavings)}</strong>
             </div>
 
-            <div className="mt-2 flex items-center justify-between gap-4 border-t border-slate-500/30 pt-[18px] text-lg">
+            <div className="mt-2 flex items-center justify-between gap-4 border-t border-slate-300 pt-[18px] text-lg">
               <span>Final total</span>
-              <strong className="text-white">{formatCurrency(summary.finalTotal)}</strong>
+              <strong className="text-slate-900">{formatCurrency(summary.finalTotal)}</strong>
             </div>
           </div>
         </>
