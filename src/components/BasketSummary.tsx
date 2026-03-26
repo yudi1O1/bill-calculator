@@ -16,14 +16,8 @@ import {
 } from "../services/basketPersistence";
 import { formatCurrency } from "../utils/currency";
 
-const ghostButtonClass =
-  "inline-flex items-center justify-center border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-55";
-
 const primaryButtonClass =
   "inline-flex items-center justify-center border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-55";
-
-const pillClass =
-  "inline-flex items-center justify-center border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700";
 
 function getStatusMessage(error: unknown, fallbackMessage: string) {
   if (error instanceof Error) {
@@ -33,31 +27,18 @@ function getStatusMessage(error: unknown, fallbackMessage: string) {
   return fallbackMessage;
 }
 
-function getFormattedDate(value: string | null) {
-  if (!value) {
-    return null;
-  }
-
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
 export const BasketSummary = () => {
   const dispatch = useAppDispatch();
   const itemCount = useAppSelector(selectBasketCount);
   const basketItems = useAppSelector(selectBasketItems);
   const summary = useAppSelector(selectCheckoutSummary);
 
-  const [loadingBasket, setLoadingBasket] = useState(false);
+  const [, setLoadingBasket] = useState(false);
   const [savingBasket, setSavingBasket] = useState(false);
-  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>(
+  const [, setLastSyncedAt] = useState<string | null>(null);
+  const [, setStatusMessage] = useState<string>(
     isFirebaseConfigured ? "Firebase is ready." : firebaseConfigError || "Firebase is not configured.",
   );
-
-  const formattedLastSyncedAt = getFormattedDate(lastSyncedAt);
 
   const loadBasket = async (loadingMessage: string, successMessage: string) => {
     setLoadingBasket(true);
@@ -96,10 +77,6 @@ export const BasketSummary = () => {
     }
   };
 
-  const handleLoadBasket = async () => {
-    await loadBasket("Refreshing basket from Firebase...", "Basket refreshed from Firebase.");
-  };
-
   useEffect(() => {
     if (!isFirebaseConfigured) {
       return;
@@ -121,7 +98,7 @@ export const BasketSummary = () => {
           <h2 className="text-2xl font-semibold text-slate-900">Basket</h2>
         </div>
         <button
-          className={ghostButtonClass}
+          className="inline-flex items-center justify-center border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-55"
           type="button"
           onClick={() => dispatch(clearBasket())}
           disabled={itemCount === 0}
@@ -133,22 +110,10 @@ export const BasketSummary = () => {
       <div className="mb-5 border border-slate-300 bg-slate-50 p-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">
-              Firebase
-            </p>
-            <h3 className="text-xl font-semibold text-slate-900">Saved Items</h3>
+            <h3 className="text-xl font-semibold text-slate-900">Save Items</h3>
           </div>
 
           <div className="flex items-start gap-3">
-            <button
-              className={ghostButtonClass}
-              type="button"
-              onClick={() => void handleLoadBasket()}
-              disabled={!isFirebaseConfigured || loadingBasket}
-            >
-              {loadingBasket ? "Loading..." : "Load"}
-            </button>
-
             <button
               className={primaryButtonClass}
               type="button"
@@ -159,12 +124,6 @@ export const BasketSummary = () => {
             </button>
           </div>
         </div>
-
-        <p className="mt-3 text-slate-600">{statusMessage}</p>
-
-        {formattedLastSyncedAt ? (
-          <p className="mt-3 text-sm text-slate-500">Last synced: {formattedLastSyncedAt}</p>
-        ) : null}
       </div>
 
       {summary.lineItems.length === 0 ? (
@@ -245,11 +204,9 @@ export const BasketSummary = () => {
                   </div>
 
                   {lineOffers.length > 0 ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3 space-y-1 text-sm text-slate-600">
                       {lineOffers.map((offer) => (
-                        <span className={pillClass} key={offer.id}>
-                          {offer.badge}
-                        </span>
+                        <p key={offer.id}>{offer.title}</p>
                       ))}
                     </div>
                   ) : null}
@@ -267,19 +224,16 @@ export const BasketSummary = () => {
             </div>
 
             <div className="mt-2 border-y border-slate-300 py-3">
-              <p className="mb-2 text-slate-600">Special offers applied</p>
+              <p className="mb-2 text-red-600">Special offers applied</p>
 
               {summary.appliedOffers.length > 0 ? (
                 summary.appliedOffers.map((offer) => (
                   <div
-                    className="flex items-center justify-between gap-4 py-2.5 text-slate-700"
+                    className="flex items-center justify-between gap-4 py-2.5 text-red-600"
                     key={offer.id}
                   >
-                    <span className="inline-flex flex-wrap items-center gap-2.5">
-                      <span className={pillClass}>{offer.badge}</span>
-                      <span>{offer.title}</span>
-                    </span>
-                    <strong className="text-slate-900">-{formatCurrency(offer.savings)}</strong>
+                    <span>{offer.title}</span>
+                    <strong className="text-red-700">-{formatCurrency(offer.savings)}</strong>
                   </div>
                 ))
               ) : (

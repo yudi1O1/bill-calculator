@@ -33,8 +33,7 @@ export const calculateCheckout = (basket: BasketEntry[]): CheckoutSummary => {
   if (cheeseSavings > 0) {
     appliedOffers.push({
       id: "cheese-bogo",
-      badge: "BOGO",
-      title: "Cheese buy one get one free",
+      title: "Cheese offer",
       description: "Every second cheese is free.",
       savings: cheeseSavings,
     });
@@ -47,9 +46,8 @@ export const calculateCheckout = (basket: BasketEntry[]): CheckoutSummary => {
   if (soupBreadSavings > 0) {
     appliedOffers.push({
       id: "soup-bread",
-      badge: "50% OFF",
-      title: "Soup with half-price bread",
-      description: `${soupBreadPairs} bread item(s) discounted by 50% with soup.`,
+      title: "Soup and bread",
+      description: `${soupBreadPairs} bread item(s) got a discount with soup.`,
       savings: soupBreadSavings,
     });
   }
@@ -60,9 +58,8 @@ export const calculateCheckout = (basket: BasketEntry[]): CheckoutSummary => {
   if (butterSavings > 0) {
     appliedOffers.push({
       id: "butter-third-off",
-      badge: "33% OFF",
-      title: "Butter one-third off",
-      description: "One-third discount applied to each butter.",
+      title: "Butter deal",
+      description: "A discount was applied to each butter.",
       savings: butterSavings,
     });
   }

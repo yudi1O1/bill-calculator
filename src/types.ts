@@ -15,7 +15,6 @@ export interface BasketEntry {
 
 export interface AppliedOffer {
   id: string;
-  badge: string;
   title: string;
   description: string;
   savings: number;

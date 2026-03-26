@@ -13,10 +13,6 @@ const App = () => {
           <h1 className="max-w-[18ch] text-4xl leading-[1.12] font-semibold text-slate-900 sm:text-5xl">
             Shopping basket bill calculator
           </h1>
-          <p className="mt-3 max-w-[640px] text-base text-slate-700">
-            Select products, see the subtotal before discounts, review each offer
-            saving, and get the final payable amount instantly.
-          </p>
         </div>
       </section>
 

@@ -3,18 +3,15 @@ import { formatCurrency } from "../utils/currency";
 const offers = [
   {
     title: "Cheese offer",
-    description: "Buy one cheese and get the second cheese free.",
-    badge: "BOGO",
+    description: "Buy one cheese and get one free.",
   },
   {
     title: "Soup and bread",
-    description: "Each soup gives one bread at half price.",
-    badge: "50% OFF",
+    description: "Each soup gives one bread at a lower price.",
   },
   {
     title: "Butter deal",
-    description: "Every butter receives a one-third discount.",
-    badge: "33% OFF",
+    description: "Each butter gets a discount.",
   },
 ];
 
@@ -35,10 +32,7 @@ export const OfferList = () => (
           className="border border-slate-300 bg-white p-4"
           key={offer.title}
         >
-          <span className="inline-flex items-center justify-center border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700">
-            {offer.badge}
-          </span>
-          <h3 className="mt-3 text-xl font-semibold text-slate-900">{offer.title}</h3>
+          <h3 className="text-xl font-semibold text-slate-900">{offer.title}</h3>
           <p className="mt-1 text-sm leading-6 text-slate-600">{offer.description}</p>
         </article>
       ))}

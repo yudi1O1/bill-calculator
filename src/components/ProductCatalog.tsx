@@ -21,9 +21,6 @@ export const ProductCatalog = () => {
           </p>
           <h2 className="text-2xl font-semibold text-slate-900">Products</h2>
         </div>
-        <span className="inline-flex items-center justify-center border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700">
-          5 items
-        </span>
       </div>
 
       <div className="grid gap-4">
