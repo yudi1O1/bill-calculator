@@ -3,10 +3,9 @@ import type { BasketEntry } from "../types";
 import { db, firebaseConfigError, isFirebaseConfigured } from "../lib/firebase";
 
 const basketDocId = import.meta.env.FIREBASE_BASKET_DOC_ID || "default-basket";
-const basketDocPath = ["baskets", basketDocId] as const;
 
 interface BasketDocument {
-  items: BasketEntry[];
+  items?: BasketEntry[];
   savedAt?: {
     toDate?: () => Date;
   };
@@ -17,39 +16,36 @@ export interface BasketSnapshot {
   savedAt: string | null;
 }
 
-const getBasketDocRef = () => {
-  if (!db) {
-    throw new Error(firebaseConfigError || "Firebase is not configured.");
-  }
-
-  return doc(db, ...basketDocPath);
-};
-
 export const loadBasketFromFirestore = async (): Promise<BasketSnapshot | null> => {
-  if (!isFirebaseConfigured) {
+  if (!isFirebaseConfigured || !db) {
     throw new Error(firebaseConfigError || "Firebase is not configured.");
   }
 
-  const snapshot = await getDoc(getBasketDocRef());
+  const basketRef = doc(db, "baskets", basketDocId);
+  const snapshot = await getDoc(basketRef);
 
   if (!snapshot.exists()) {
     return null;
   }
 
   const data = snapshot.data() as BasketDocument;
+  const items = Array.isArray(data.items) ? data.items : [];
+  const savedAt = data.savedAt?.toDate ? data.savedAt.toDate().toISOString() : null;
 
   return {
-    items: Array.isArray(data.items) ? data.items : [],
-    savedAt: data.savedAt?.toDate?.().toISOString() ?? null,
+    items,
+    savedAt,
   };
 };
 
 export const saveBasketToFirestore = async (items: BasketEntry[]): Promise<string> => {
-  if (!isFirebaseConfigured) {
+  if (!isFirebaseConfigured || !db) {
     throw new Error(firebaseConfigError || "Firebase is not configured.");
   }
 
-  await setDoc(getBasketDocRef(), {
+  const basketRef = doc(db, "baskets", basketDocId);
+
+  await setDoc(basketRef, {
     items,
     savedAt: serverTimestamp(),
   });

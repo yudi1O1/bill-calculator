@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  clearBasket,
   addItem,
+  clearBasket,
   removeItem,
   selectBasketCount,
   selectBasketItems,
@@ -16,67 +16,73 @@ import {
 } from "../services/basketPersistence";
 import { formatCurrency } from "../utils/currency";
 
+const ghostButtonClass =
+  "inline-flex items-center justify-center rounded-[14px] border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-700 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0";
+
+const primaryButtonClass =
+  "inline-flex items-center justify-center rounded-[14px] bg-linear-to-r from-blue-600 to-slate-900 px-4 py-2.5 font-semibold text-white shadow-[0_10px_18px_rgba(37,99,235,0.18)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0";
+
+const pillClass =
+  "inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700";
+
+function getStatusMessage(error: unknown, fallbackMessage: string) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return fallbackMessage;
+}
+
+function getFormattedDate(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
 export const BasketSummary = () => {
   const dispatch = useAppDispatch();
   const itemCount = useAppSelector(selectBasketCount);
   const basketItems = useAppSelector(selectBasketItems);
   const summary = useAppSelector(selectCheckoutSummary);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(
-    isFirebaseConfigured ? null : firebaseConfigError,
-  );
+
+  const [loadingBasket, setLoadingBasket] = useState(false);
+  const [savingBasket, setSavingBasket] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>(
+    isFirebaseConfigured ? "Firebase is ready." : firebaseConfigError || "Firebase is not configured.",
+  );
 
-  useEffect(() => {
-    if (!isFirebaseConfigured) {
-      return;
-    }
+  const formattedLastSyncedAt = getFormattedDate(lastSyncedAt);
 
-    let isMounted = true;
+  const loadBasket = async (loadingMessage: string, successMessage: string) => {
+    setLoadingBasket(true);
+    setStatusMessage(loadingMessage);
 
-    const hydrateBasket = async () => {
-      setIsLoading(true);
-      setStatusMessage("Loading basket from Firebase...");
+    try {
+      const savedBasket = await loadBasketFromFirestore();
 
-      try {
-        const snapshot = await loadBasketFromFirestore();
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (snapshot) {
-          dispatch(setBasket(snapshot.items));
-          setLastSyncedAt(snapshot.savedAt);
-          setStatusMessage("Basket loaded from Firebase.");
-        } else {
-          setStatusMessage("Firebase is connected. Save the basket to create the first record.");
-        }
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setStatusMessage(
-          error instanceof Error ? error.message : "Unable to load basket from Firebase.",
-        );
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      if (!savedBasket) {
+        setStatusMessage("No basket document found in Firebase yet.");
+        return;
       }
-    };
 
-    void hydrateBasket();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [dispatch]);
+      dispatch(setBasket(savedBasket.items));
+      setLastSyncedAt(savedBasket.savedAt);
+      setStatusMessage(successMessage);
+    } catch (error) {
+      setStatusMessage(getStatusMessage(error, "Unable to load basket from Firebase."));
+    } finally {
+      setLoadingBasket(false);
+    }
+  };
 
   const handleSaveBasket = async () => {
-    setIsSaving(true);
+    setSavingBasket(true);
     setStatusMessage("Saving basket to Firebase...");
 
     try {
@@ -84,53 +90,38 @@ export const BasketSummary = () => {
       setLastSyncedAt(savedAt);
       setStatusMessage("Basket saved to Firebase.");
     } catch (error) {
-      setStatusMessage(
-        error instanceof Error ? error.message : "Unable to save basket to Firebase.",
-      );
+      setStatusMessage(getStatusMessage(error, "Unable to save basket to Firebase."));
     } finally {
-      setIsSaving(false);
+      setSavingBasket(false);
     }
   };
 
   const handleLoadBasket = async () => {
-    setIsLoading(true);
-    setStatusMessage("Refreshing basket from Firebase...");
-
-    try {
-      const snapshot = await loadBasketFromFirestore();
-
-      if (snapshot) {
-        dispatch(setBasket(snapshot.items));
-        setLastSyncedAt(snapshot.savedAt);
-        setStatusMessage("Basket refreshed from Firebase.");
-      } else {
-        setStatusMessage("No basket document found in Firebase yet.");
-      }
-    } catch (error) {
-      setStatusMessage(
-        error instanceof Error ? error.message : "Unable to refresh basket from Firebase.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
+    await loadBasket("Refreshing basket from Firebase...", "Basket refreshed from Firebase.");
   };
 
-  const formattedLastSyncedAt = lastSyncedAt
-    ? new Intl.DateTimeFormat("en-GB", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(new Date(lastSyncedAt))
-    : null;
+  useEffect(() => {
+    if (!isFirebaseConfigured) {
+      return;
+    }
+
+    void loadBasket(
+      "Loading basket from Firebase...",
+      "Basket loaded from Firebase.",
+    );
+  }, []);
 
   return (
-    <section className="panel panel--summary">
-      <div className="panel__header">
+    <section className="mt-6 rounded-3xl border border-slate-200/70 bg-white/85 p-6 shadow-[0_18px_34px_rgba(15,23,42,0.06)] backdrop-blur-xl">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="eyebrow">Billing details</p>
-          <h2>Basket</h2>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-blue-600">
+            Billing details
+          </p>
+          <h2 className="text-3xl font-semibold text-slate-900">Basket</h2>
         </div>
         <button
-          className="ghost-button"
+          className={ghostButtonClass}
           type="button"
           onClick={() => dispatch(clearBasket())}
           disabled={itemCount === 0}
@@ -139,75 +130,102 @@ export const BasketSummary = () => {
         </button>
       </div>
 
-      <div className="sync-card">
-        <div className="sync-card__header">
+      <div className="mb-5 rounded-[20px] border border-sky-200/70 bg-linear-to-br from-cyan-50 to-white p-[18px]">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="eyebrow">Firebase</p>
-            <h3>Basket persistence</h3>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-blue-600">
+              Firebase
+            </p>
+            <h3 className="text-2xl font-semibold text-slate-900">Basket persistence</h3>
           </div>
-          <div className="sync-card__actions">
+
+          <div className="flex items-start gap-3">
             <button
-              className="ghost-button"
+              className={ghostButtonClass}
               type="button"
               onClick={() => void handleLoadBasket()}
-              disabled={!isFirebaseConfigured || isLoading}
+              disabled={!isFirebaseConfigured || loadingBasket}
             >
-              {isLoading ? "Loading..." : "Load"}
+              {loadingBasket ? "Loading..." : "Load"}
             </button>
+
             <button
-              className="action-button"
+              className={primaryButtonClass}
               type="button"
               onClick={() => void handleSaveBasket()}
-              disabled={!isFirebaseConfigured || isSaving}
+              disabled={!isFirebaseConfigured || savingBasket}
             >
-              {isSaving ? "Saving..." : "Save"}
+              {savingBasket ? "Saving..." : "Save"}
             </button>
           </div>
         </div>
 
-        <p className="sync-card__status">{statusMessage || "Firebase is ready."}</p>
+        <p className="mt-3 text-slate-600">{statusMessage}</p>
 
         {formattedLastSyncedAt ? (
-          <p className="sync-card__meta">Last synced: {formattedLastSyncedAt}</p>
+          <p className="mt-3 text-sm text-slate-500">Last synced: {formattedLastSyncedAt}</p>
         ) : null}
       </div>
 
       {summary.lineItems.length === 0 ? (
-        <div className="empty-state">
-          <h3>No products selected</h3>
-          <p>Add products from the left panel to generate the bill automatically.</p>
+        <div className="rounded-[20px] border border-dashed border-blue-300 bg-linear-to-br from-blue-50 to-white p-6">
+          <h3 className="text-2xl font-semibold text-slate-900">No products selected</h3>
+          <p className="mt-2 text-slate-500">
+            Add products from the left panel to generate the bill automatically.
+          </p>
         </div>
       ) : (
         <>
-          <div className="basket-lines">
+          <div className="grid gap-4">
             {summary.lineItems.map((item) => {
-              const lineOffers = summary.appliedOffers.filter((offer) =>
-                  (offer.id === "cheese-bogo" && item.product.id === "cheese") ||
-                  (offer.id === "soup-bread" && item.product.id === "bread") ||
-                  (offer.id === "butter-third-off" && item.product.id === "butter"),
-                );
+              const lineOffers = [];
 
-              const offerSavings = lineOffers.reduce((sum, offer) => sum + offer.savings, 0);
+              for (const offer of summary.appliedOffers) {
+                if (offer.id === "cheese-bogo" && item.product.id === "cheese") {
+                  lineOffers.push(offer);
+                }
+
+                if (offer.id === "soup-bread" && item.product.id === "bread") {
+                  lineOffers.push(offer);
+                }
+
+                if (offer.id === "butter-third-off" && item.product.id === "butter") {
+                  lineOffers.push(offer);
+                }
+              }
+
+              let offerSavings = 0;
+
+              lineOffers.forEach((offer) => {
+                offerSavings += offer.savings;
+              });
 
               return (
-                <article className="basket-line" key={item.product.id}>
-                  <div className="basket-line__main">
+                <article
+                  className="rounded-[20px] border border-slate-200 bg-white p-[18px]"
+                  key={item.product.id}
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <h3>{item.product.name}</h3>
-                      <p>
+                      <h3 className="text-xl font-semibold text-slate-900">{item.product.name}</h3>
+                      <p className="text-slate-500">
                         {formatCurrency(item.product.price)} x {item.quantity}
                       </p>
                     </div>
 
-                    <div className="quantity-stepper">
+                    <div className="inline-flex items-center gap-2.5">
                       <button
+                        className="flex h-[38px] w-[38px] items-center justify-center rounded-xl bg-blue-50 text-xl font-extrabold text-blue-700 transition hover:-translate-y-0.5"
                         type="button"
                         onClick={() => dispatch(removeItem(item.product.id))}
                       >
                         -
                       </button>
-                      <span>{item.quantity}</span>
+                      <span className="min-w-7 text-center font-bold text-slate-900">
+                        {item.quantity}
+                      </span>
                       <button
+                        className="flex h-[38px] w-[38px] items-center justify-center rounded-xl bg-blue-50 text-xl font-extrabold text-blue-700 transition hover:-translate-y-0.5"
                         type="button"
                         onClick={() => dispatch(addItem(item.product.id))}
                       >
@@ -216,20 +234,20 @@ export const BasketSummary = () => {
                     </div>
                   </div>
 
-                  <div className="basket-line__meta">
+                  <div className="mt-3 flex items-center justify-between gap-4 text-slate-600">
                     <span>Item subtotal</span>
-                    <strong>{formatCurrency(item.lineSubtotal)}</strong>
+                    <strong className="text-slate-950">{formatCurrency(item.lineSubtotal)}</strong>
                   </div>
 
-                  <div className="basket-line__meta basket-line__meta--saving">
+                  <div className="mt-3 flex items-center justify-between gap-4 text-slate-600">
                     <span>Offer saving</span>
-                    <strong>{formatCurrency(offerSavings)}</strong>
+                    <strong className="text-red-600">{formatCurrency(offerSavings)}</strong>
                   </div>
 
                   {lineOffers.length > 0 ? (
-                    <div className="basket-line__offers">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       {lineOffers.map((offer) => (
-                        <span className="pill pill--light" key={offer.id}>
+                        <span className={pillClass} key={offer.id}>
                           {offer.badge}
                         </span>
                       ))}
@@ -240,42 +258,46 @@ export const BasketSummary = () => {
             })}
           </div>
 
-          <div className="totals-card">
-            <h3>Bill summary</h3>
+          <div className="mt-5 rounded-[20px] bg-linear-to-b from-slate-900 to-slate-800 p-[22px] text-slate-200">
+            <h3 className="mb-4 text-2xl font-semibold text-white">Bill summary</h3>
 
-            <div className="totals-row">
+            <div className="flex items-center justify-between gap-4 py-2.5">
               <span>Subtotal before offers</span>
-              <strong>{formatCurrency(summary.subtotal)}</strong>
+              <strong className="text-white">{formatCurrency(summary.subtotal)}</strong>
             </div>
 
-            <div className="offer-breakdown">
-              <p>Special offers applied</p>
+            <div className="mt-2 border-y border-slate-500/30 py-3">
+              <p className="mb-2 text-slate-300">Special offers applied</p>
+
               {summary.appliedOffers.length > 0 ? (
                 summary.appliedOffers.map((offer) => (
-                  <div className="totals-row totals-row--saving" key={offer.id}>
-                    <span className="offer-label">
-                      <span className="pill pill--light">{offer.badge}</span>
+                  <div
+                    className="flex items-center justify-between gap-4 py-2.5 text-emerald-300"
+                    key={offer.id}
+                  >
+                    <span className="inline-flex flex-wrap items-center gap-2.5">
+                      <span className={pillClass}>{offer.badge}</span>
                       <span>{offer.title}</span>
                     </span>
-                    <strong>-{formatCurrency(offer.savings)}</strong>
+                    <strong className="text-emerald-300">-{formatCurrency(offer.savings)}</strong>
                   </div>
                 ))
               ) : (
-                <div className="totals-row totals-row--muted">
+                <div className="flex items-center justify-between gap-4 py-2.5 text-slate-300">
                   <span>No offers matched this basket</span>
-                  <strong>{formatCurrency(0)}</strong>
+                  <strong className="text-white">{formatCurrency(0)}</strong>
                 </div>
               )}
             </div>
 
-            <div className="totals-row">
+            <div className="flex items-center justify-between gap-4 py-2.5">
               <span>Total savings</span>
-              <strong className="text-success">{formatCurrency(summary.totalSavings)}</strong>
+              <strong className="text-emerald-300">{formatCurrency(summary.totalSavings)}</strong>
             </div>
 
-            <div className="totals-row totals-row--grand">
+            <div className="mt-2 flex items-center justify-between gap-4 border-t border-slate-500/30 pt-[18px] text-lg">
               <span>Final total</span>
-              <strong>{formatCurrency(summary.finalTotal)}</strong>
+              <strong className="text-white">{formatCurrency(summary.finalTotal)}</strong>
             </div>
           </div>
         </>

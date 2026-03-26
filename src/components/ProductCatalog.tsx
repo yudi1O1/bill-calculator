@@ -13,38 +13,42 @@ export const ProductCatalog = () => {
   );
 
   return (
-    <section className="panel">
-      <div className="panel__header">
+    <section className="rounded-3xl border border-slate-200/70 bg-white/85 p-6 shadow-[0_18px_34px_rgba(15,23,42,0.06)] backdrop-blur-xl">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="eyebrow">Store selection</p>
-          <h2>Products</h2>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-blue-600">
+            Store selection
+          </p>
+          <h2 className="text-3xl font-semibold text-slate-900">Products</h2>
         </div>
-        <span className="pill">5 items</span>
+        <span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-3 py-2 text-xs font-bold text-blue-700">
+          5 items
+        </span>
       </div>
 
-      <div className="catalog-grid">
+      <div className="grid gap-4">
         {products.map((product) => (
           <article
-            className="product-card"
+            className="rounded-[20px] border border-slate-200 bg-linear-to-b from-white to-slate-50 p-[18px]"
             key={product.id}
-            style={{ "--accent": product.accent } as CSSProperties}
+            style={{ borderLeft: `6px solid ${product.accent}` } as CSSProperties}
           >
-            <div className="product-card__top">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h3>{product.name}</h3>
-                <p>{product.description}</p>
+                <h3 className="text-xl font-semibold text-slate-900">{product.name}</h3>
+                <p className="mt-1 text-sm leading-6 text-slate-500">{product.description}</p>
               </div>
-              <span className="product-card__price">
+              <span className="shrink-0 whitespace-nowrap text-lg font-extrabold text-slate-950">
                 {formatCurrency(product.price)}
               </span>
             </div>
 
-            <div className="product-card__footer">
-              <span className="product-card__meta">
+            <div className="mt-[18px] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-sm font-semibold text-slate-600">
                 In basket: {quantityMap[product.id] ?? 0}
               </span>
               <button
-                className="action-button"
+                className="inline-flex items-center justify-center rounded-xl bg-linear-to-r from-blue-600 to-slate-900 px-4 py-2.5 font-semibold text-white shadow-[0_10px_18px_rgba(37,99,235,0.18)] transition hover:-translate-y-0.5"
                 type="button"
                 onClick={() => dispatch(addItem(product.id))}
               >

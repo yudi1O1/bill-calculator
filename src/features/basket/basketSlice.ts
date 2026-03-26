@@ -1,4 +1,4 @@
-import { createSelector, createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { products } from "../../data/products";
 import type { RootState } from "../../store";
 import type { BasketEntry, ProductId } from "../../types";
@@ -8,24 +8,15 @@ interface BasketState {
   items: BasketEntry[];
 }
 
-const createEmptyBasketItems = (): BasketEntry[] =>
-  products.map((product) => ({
+const initialItems: BasketEntry[] = products.map((product) => {
+  return {
     productId: product.id,
     quantity: 0,
-  }));
-
-const normalizeBasketItems = (items: BasketEntry[]): BasketEntry[] =>
-  products.map((product) => {
-    const matchingItem = items.find((item) => item.productId === product.id);
-
-    return {
-      productId: product.id,
-      quantity: Math.max(0, matchingItem?.quantity ?? 0),
-    };
-  });
+  };
+});
 
 const initialState: BasketState = {
-  items: createEmptyBasketItems(),
+  items: initialItems,
 };
 
 const basketSlice = createSlice({
@@ -34,14 +25,16 @@ const basketSlice = createSlice({
   reducers: {
     addItem: (state, action: PayloadAction<ProductId>) => {
       const item = state.items.find((entry) => entry.productId === action.payload);
+
       if (item) {
-        item.quantity += 1;
+        item.quantity = item.quantity + 1;
       }
     },
     removeItem: (state, action: PayloadAction<ProductId>) => {
       const item = state.items.find((entry) => entry.productId === action.payload);
+
       if (item && item.quantity > 0) {
-        item.quantity -= 1;
+        item.quantity = item.quantity - 1;
       }
     },
     clearBasket: (state) => {
@@ -50,7 +43,14 @@ const basketSlice = createSlice({
       });
     },
     setBasket: (state, action: PayloadAction<BasketEntry[]>) => {
-      state.items = normalizeBasketItems(action.payload);
+      state.items = products.map((product) => {
+        const savedItem = action.payload.find((item) => item.productId === product.id);
+
+        return {
+          productId: product.id,
+          quantity: savedItem && savedItem.quantity > 0 ? savedItem.quantity : 0,
+        };
+      });
     },
   },
 });
@@ -59,12 +59,18 @@ export const { addItem, removeItem, clearBasket, setBasket } = basketSlice.actio
 
 export const selectBasketItems = (state: RootState) => state.basket.items;
 
-export const selectBasketCount = createSelector([selectBasketItems], (items) =>
-  items.reduce((sum, item) => sum + item.quantity, 0),
-);
+export const selectBasketCount = (state: RootState) => {
+  let total = 0;
 
-export const selectCheckoutSummary = createSelector([selectBasketItems], (items) =>
-  calculateCheckout(items),
-);
+  state.basket.items.forEach((item) => {
+    total += item.quantity;
+  });
+
+  return total;
+};
+
+export const selectCheckoutSummary = (state: RootState) => {
+  return calculateCheckout(state.basket.items);
+};
 
 export default basketSlice.reducer;

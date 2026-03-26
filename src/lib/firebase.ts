@@ -1,32 +1,38 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-const firebaseConfig = {
-  apiKey: import.meta.env.FIREBASE_API_KEY,
-  authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.FIREBASE_APP_ID,
-  measurementId: import.meta.env.FIREBASE_MEASUREMENT_ID,
-};
+const apiKey = import.meta.env.FIREBASE_API_KEY;
+const authDomain = import.meta.env.FIREBASE_AUTH_DOMAIN;
+const projectId = import.meta.env.FIREBASE_PROJECT_ID;
+const storageBucket = import.meta.env.FIREBASE_STORAGE_BUCKET;
+const messagingSenderId = import.meta.env.FIREBASE_MESSAGING_SENDER_ID;
+const appId = import.meta.env.FIREBASE_APP_ID;
+const measurementId = import.meta.env.FIREBASE_MEASUREMENT_ID;
 
-const requiredConfigKeys = [
-  "FIREBASE_API_KEY",
-  "FIREBASE_AUTH_DOMAIN",
-  "FIREBASE_PROJECT_ID",
-  "FIREBASE_STORAGE_BUCKET",
-  "FIREBASE_MESSAGING_SENDER_ID",
-  "FIREBASE_APP_ID",
-] as const;
+const missingKeys: string[] = [];
 
-const missingConfigKeys = requiredConfigKeys.filter((key) => !import.meta.env[key]);
+if (!apiKey) missingKeys.push("FIREBASE_API_KEY");
+if (!authDomain) missingKeys.push("FIREBASE_AUTH_DOMAIN");
+if (!projectId) missingKeys.push("FIREBASE_PROJECT_ID");
+if (!storageBucket) missingKeys.push("FIREBASE_STORAGE_BUCKET");
+if (!messagingSenderId) missingKeys.push("FIREBASE_MESSAGING_SENDER_ID");
+if (!appId) missingKeys.push("FIREBASE_APP_ID");
 
-export const isFirebaseConfigured = missingConfigKeys.length === 0;
+export const isFirebaseConfigured = missingKeys.length === 0;
 
 export const firebaseConfigError = isFirebaseConfigured
   ? null
-  : `Missing Firebase env vars: ${missingConfigKeys.join(", ")}`;
+  : `Missing Firebase env vars: ${missingKeys.join(", ")}`;
+
+const firebaseConfig = {
+  apiKey,
+  authDomain,
+  projectId,
+  storageBucket,
+  messagingSenderId,
+  appId,
+  measurementId,
+};
 
 const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;
 
