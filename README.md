@@ -16,22 +16,11 @@ A React + Redux Toolkit + TypeScript assignment project that lets a user select 
 - View subtotal before applying offers
 - Show each applied offer with individual savings
 - Show total savings and final total
+- Save basket data in Firebase Firestore
+- Load saved basket data from Firebase Firestore
 - Responsive, polished UI
 - Unit tests for billing logic
 
-## Product prices
-
-- Bread: GBP 1.10
-- Milk: GBP 0.50
-- Cheese: GBP 0.90
-- Soup: GBP 0.60
-- Butter: GBP 1.20
-
-## Special offers
-
-- Buy one cheese, get one cheese free
-- Buy soup and get bread at half price
-- Butter gets one-third off
 
 ## Run locally
 
@@ -39,6 +28,23 @@ A React + Redux Toolkit + TypeScript assignment project that lets a user select 
 npm install
 npm run dev
 ```
+
+## Firebase setup
+
+Create a local `.env.local` file and add the Firebase web app configuration:
+
+```env
+FIREBASE_API_KEY=...
+FIREBASE_AUTH_DOMAIN=...
+FIREBASE_PROJECT_ID=...
+FIREBASE_STORAGE_BUCKET=...
+FIREBASE_MESSAGING_SENDER_ID=...
+FIREBASE_APP_ID=...
+FIREBASE_MEASUREMENT_ID=...
+FIREBASE_BASKET_DOC_ID=default-basket
+```
+
+Firestore is used to save and load basket data.
 
 ## Verify
 
@@ -49,31 +55,10 @@ npm run build
 
 ## Deployment
 
-This project is ready to deploy on Netlify, Firebase Hosting, or Vercel after connecting it to your own account.
-
-For Vercel:
-
-1. Push the project to your GitHub repository.
-2. Import the repository into Vercel.
-3. Vercel should detect this as a Vite app automatically.
-4. Build command: `npm run build`
-5. Output directory: `dist`
-6. Click deploy.
-
-For Netlify:
-
-1. Push the project to your GitHub repository.
-2. Import the repo into Netlify.
-3. Use `npm run build` as the build command.
-4. Use `dist` as the publish directory.
-
-For Firebase Hosting:
-
-1. Run `firebase init hosting`.
-2. Set `dist` as the public directory.
-3. Run `npm run build`.
-4. Deploy with `firebase deploy`.
+Deployment works with Vercel.
 
 ## Notes
 
-- I could not push to GitHub or deploy from this environment because that requires your GitHub or hosting account credentials.
+- Firebase configuration is handled with local environment variables.
+- Firestore stores the saved basket items.
+- `dist` is the production build output directory.
