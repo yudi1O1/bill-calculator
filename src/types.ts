@@ -4,20 +4,29 @@ export interface Product {
   id: ProductId;
   name: string;
   price: number;
-  accent: string;
-  description: string;
+  accentClass: string;
 }
 
 export interface BasketEntry {
   productId: ProductId;
-  quantity: number;
+  quantity: number; 
 }
 
 export interface AppliedOffer {
   id: string;
+  productId: ProductId;
+  title: string;
+  savings: number;
+}
+
+export interface Offer {
+  id: string;
   title: string;
   description: string;
-  savings: number;
+  rule: string;
+  productId: ProductId;
+  triggerProductId?: ProductId;
+  discountPercent?: number;
 }
 
 export interface BasketLineSummary {

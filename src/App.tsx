@@ -4,10 +4,10 @@ import { ProductCatalog } from "./components/ProductCatalog";
 
 const App = () => {
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col px-4 py-6 sm:px-6 sm:py-8">
-      <section className="border border-slate-300 bg-white p-6">
+    <main className="page-shell">
+      <section className="panel panel-body-lg">
         <div className="max-w-[840px]">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">
+          <p className="section-label">
             React + Redux Toolkit + TypeScript
           </p>
           <h1 className="max-w-[18ch] text-4xl leading-[1.12] font-semibold text-slate-900 sm:text-5xl">

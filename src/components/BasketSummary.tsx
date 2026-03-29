@@ -14,18 +14,6 @@ import {
   loadBasketFromFirestore,
   saveBasketToFirestore,
 } from "../services/basketPersistence";
-import { formatCurrency } from "../utils/currency";
-
-const primaryButtonClass =
-  "inline-flex items-center justify-center border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-55";
-
-function getStatusMessage(error: unknown, fallbackMessage: string) {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return fallbackMessage;
-}
 
 export const BasketSummary = () => {
   const dispatch = useAppDispatch();
@@ -33,16 +21,24 @@ export const BasketSummary = () => {
   const basketItems = useAppSelector(selectBasketItems);
   const summary = useAppSelector(selectCheckoutSummary);
 
-  const [, setLoadingBasket] = useState(false);
   const [savingBasket, setSavingBasket] = useState(false);
-  const [, setLastSyncedAt] = useState<string | null>(null);
-  const [, setStatusMessage] = useState<string>(
-    isFirebaseConfigured ? "Firebase is ready." : firebaseConfigError || "Firebase is not configured.",
+  const [statusMessage, setStatusMessage] = useState(
+    isFirebaseConfigured
+      ? "Firebase is ready."
+      : firebaseConfigError || "Firebase is not configured.",
   );
+  // error Handeling
+  const getErrorMessage = (error: unknown, fallbackMessage: string) => {
+    if (error instanceof Error) {
+      return error.message;
+    }
 
-  const loadBasket = async (loadingMessage: string, successMessage: string) => {
-    setLoadingBasket(true);
-    setStatusMessage(loadingMessage);
+    return fallbackMessage;
+  };
+
+  // load basket from firebase and update local state
+  const loadBasket = async () => {
+    setStatusMessage("Loading basket from Firebase...");
 
     try {
       const savedBasket = await loadBasketFromFirestore();
@@ -53,12 +49,11 @@ export const BasketSummary = () => {
       }
 
       dispatch(setBasket(savedBasket.items));
-      setLastSyncedAt(savedBasket.savedAt);
-      setStatusMessage(successMessage);
+      setStatusMessage("Basket loaded from Firebase.");
     } catch (error) {
-      setStatusMessage(getStatusMessage(error, "Unable to load basket from Firebase."));
-    } finally {
-      setLoadingBasket(false);
+      setStatusMessage(
+        getErrorMessage(error, "Unable to load basket from Firebase."),
+      );
     }
   };
 
@@ -67,14 +62,24 @@ export const BasketSummary = () => {
     setStatusMessage("Saving basket to Firebase...");
 
     try {
-      const savedAt = await saveBasketToFirestore(basketItems);
-      setLastSyncedAt(savedAt);
+      await saveBasketToFirestore(basketItems);
       setStatusMessage("Basket saved to Firebase.");
     } catch (error) {
-      setStatusMessage(getStatusMessage(error, "Unable to save basket to Firebase."));
+      setStatusMessage(
+        getErrorMessage(error, "Unable to save basket to Firebase."),
+      );
     } finally {
       setSavingBasket(false);
     }
+  };
+
+  const getOffersForItem = (productId: string) => {
+    return summary.appliedOffers.filter((offer) => offer.productId === productId);
+  };
+
+  const getOfferSavings = (productId: string) => {
+    const offers = getOffersForItem(productId);
+    return offers.reduce((total, offer) => total + offer.savings, 0);
   };
 
   useEffect(() => {
@@ -82,23 +87,20 @@ export const BasketSummary = () => {
       return;
     }
 
-    void loadBasket(
-      "Loading basket from Firebase...",
-      "Basket loaded from Firebase.",
-    );
+    void loadBasket();
   }, []);
 
   return (
-    <section className="mt-6 border border-slate-300 bg-white p-5">
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <section className="panel panel-body mt-6">
+      <div className="section-header">
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">
+          <p className="section-label">
             Billing details
           </p>
-          <h2 className="text-2xl font-semibold text-slate-900">Basket</h2>
+          <h2 className="section-title">Basket</h2>
         </div>
         <button
-          className="inline-flex items-center justify-center border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-55"
+          className="secondary-button"
           type="button"
           onClick={() => dispatch(clearBasket())}
           disabled={itemCount === 0}
@@ -108,14 +110,14 @@ export const BasketSummary = () => {
       </div>
 
       <div className="mb-5 border border-slate-300 bg-slate-50 p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="card-top">
           <div>
             <h3 className="text-xl font-semibold text-slate-900">Save Items</h3>
           </div>
 
           <div className="flex items-start gap-3">
             <button
-              className={primaryButtonClass}
+              className="primary-button"
               type="button"
               onClick={() => void handleSaveBasket()}
               disabled={!isFirebaseConfigured || savingBasket}
@@ -124,57 +126,40 @@ export const BasketSummary = () => {
             </button>
           </div>
         </div>
+        <p className="mt-3 text-sm text-slate-600">{statusMessage}</p>
       </div>
 
       {summary.lineItems.length === 0 ? (
-        <div className="border border-dashed border-slate-300 bg-white p-6">
-          <h3 className="text-xl font-semibold text-slate-900">No products selected</h3>
-          <p className="mt-2 text-slate-600">
-            Add products from the left panel to generate the bill automatically.
-          </p>
+        <div className="empty-state">
+          <h3 className="text-xl font-semibold text-slate-900">
+            No products selected
+          </h3>
         </div>
       ) : (
         <>
           <div className="grid gap-4">
             {summary.lineItems.map((item) => {
-              const lineOffers = [];
-
-              for (const offer of summary.appliedOffers) {
-                if (offer.id === "cheese-bogo" && item.product.id === "cheese") {
-                  lineOffers.push(offer);
-                }
-
-                if (offer.id === "soup-bread" && item.product.id === "bread") {
-                  lineOffers.push(offer);
-                }
-
-                if (offer.id === "butter-third-off" && item.product.id === "butter") {
-                  lineOffers.push(offer);
-                }
-              }
-
-              let offerSavings = 0;
-
-              lineOffers.forEach((offer) => {
-                offerSavings += offer.savings;
-              });
+              const lineOffers = getOffersForItem(item.product.id);
+              const offerSavings = getOfferSavings(item.product.id);
 
               return (
                 <article
-                  className="border border-slate-300 bg-white p-4"
+                  className="item-card"
                   key={item.product.id}
                 >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="card-top">
                     <div>
-                      <h3 className="text-xl font-semibold text-slate-900">{item.product.name}</h3>
-                      <p className="text-slate-600">
-                        {formatCurrency(item.product.price)} x {item.quantity}
+                      <h3 className="text-xl font-semibold text-slate-900">
+                        {item.product.name}
+                      </h3>
+                      <p className="muted-text">
+                        ${item.product.price.toFixed(2)} x {item.quantity}
                       </p>
                     </div>
 
                     <div className="inline-flex items-center gap-2.5">
                       <button
-                        className="flex h-[38px] w-[38px] items-center justify-center border border-slate-300 bg-white text-xl font-bold text-slate-700"
+                        className="count-button"
                         type="button"
                         onClick={() => dispatch(removeItem(item.product.id))}
                       >
@@ -184,7 +169,7 @@ export const BasketSummary = () => {
                         {item.quantity}
                       </span>
                       <button
-                        className="flex h-[38px] w-[38px] items-center justify-center border border-slate-300 bg-white text-xl font-bold text-slate-700"
+                        className="count-button"
                         type="button"
                         onClick={() => dispatch(addItem(item.product.id))}
                       >
@@ -193,18 +178,24 @@ export const BasketSummary = () => {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between gap-4 text-slate-600">
+                  <div className="summary-row muted-text mt-3">
                     <span>Item subtotal</span>
-                    <strong className="text-slate-950">{formatCurrency(item.lineSubtotal)}</strong>
+                    <strong className="text-slate-950">
+                      ${item.lineSubtotal.toFixed(2)}
+                    </strong>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between gap-4 text-slate-600">
-                    <span className="font-semibold text-slate-800">Offer saving</span>
-                    <strong className="text-slate-900">{formatCurrency(offerSavings)}</strong>
+                  <div className="summary-row muted-text mt-3">
+                    <span className="font-semibold text-slate-800">
+                      Offer saving
+                    </span>
+                    <strong className="text-slate-900">
+                      ${offerSavings.toFixed(2)}
+                    </strong>
                   </div>
 
                   {lineOffers.length > 0 ? (
-                    <div className="mt-3 space-y-1 text-sm text-red-600">
+                    <div className="offer-list">
                       {lineOffers.map((offer) => (
                         <p key={offer.id}>{offer.title}</p>
                       ))}
@@ -215,12 +206,16 @@ export const BasketSummary = () => {
             })}
           </div>
 
-          <div className="mt-5 border border-slate-300 bg-slate-100 p-5 text-slate-800">
-            <h3 className="mb-4 text-xl font-semibold text-slate-900">Bill summary</h3>
+          <div className="summary-card">
+            <h3 className="mb-4 text-xl font-semibold text-slate-900">
+              Bill summary
+            </h3>
 
-            <div className="flex items-center justify-between gap-4 py-2.5">
+            <div className="summary-row">
               <span>Subtotal before offers</span>
-              <strong className="text-slate-900">{formatCurrency(summary.subtotal)}</strong>
+              <strong className="text-slate-900">
+                ${summary.subtotal.toFixed(2)}
+              </strong>
             </div>
 
             <div className="mt-2 border-y border-slate-300 py-3">
@@ -229,29 +224,35 @@ export const BasketSummary = () => {
               {summary.appliedOffers.length > 0 ? (
                 summary.appliedOffers.map((offer) => (
                   <div
-                    className="flex items-center justify-between gap-4 py-2.5 text-red-600"
+                    className="summary-row text-red-600"
                     key={offer.id}
                   >
                     <span>{offer.title}</span>
-                    <strong className="text-red-700">-{formatCurrency(offer.savings)}</strong>
+                    <strong className="text-red-700">
+                      -${offer.savings.toFixed(2)}
+                    </strong>
                   </div>
                 ))
               ) : (
-                <div className="flex items-center justify-between gap-4 py-2.5 text-slate-600">
+                <div className="summary-row muted-text">
                   <span>No offers matched this basket</span>
-                  <strong className="text-slate-900">{formatCurrency(0)}</strong>
+                  <strong className="text-slate-900">${(0).toFixed(2)}</strong>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-between gap-4 py-2.5">
+            <div className="summary-row">
               <span>Total savings</span>
-              <strong className="text-slate-900">{formatCurrency(summary.totalSavings)}</strong>
+              <strong className="text-slate-900">
+                ${summary.totalSavings.toFixed(2)}
+              </strong>
             </div>
 
             <div className="mt-2 flex items-center justify-between gap-4 border-t border-slate-300 pt-[18px] text-lg">
               <span>Final total</span>
-              <strong className="text-slate-900">{formatCurrency(summary.finalTotal)}</strong>
+              <strong className="text-slate-900">
+                ${summary.finalTotal.toFixed(2)}
+              </strong>
             </div>
           </div>
         </>

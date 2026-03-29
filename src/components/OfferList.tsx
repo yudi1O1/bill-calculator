@@ -1,66 +1,56 @@
-import { formatCurrency } from "../utils/currency";
-
-const offers = [
-  {
-    title: "Cheese offer",
-    description: "Buy one cheese and get one free.",
-  },
-  {
-    title: "Soup and bread",
-    description: "Each soup gives one bread at a lower price.",
-  },
-  {
-    title: "Butter deal",
-    description: "Each butter gets a discount.",
-  },
-];
+import { offers } from "../data/offers";
 
 export const OfferList = () => (
-  <section className="border border-slate-300 bg-white p-5">
+  <section className="panel panel-body">
     <div className="mb-5">
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">
+        <p className="section-label">
           Promotions
         </p>
-        <h2 className="text-2xl font-semibold text-slate-900">Special offers</h2>
+        <h2 className="section-title">Special offers</h2>
       </div>
     </div>
 
     <div className="grid gap-4">
+      {/* offer section */}
       {offers.map((offer) => (
         <article
-          className="border border-slate-300 bg-white p-4"
+          className="item-card"
           key={offer.title}
         >
-          <h3 className="text-xl font-semibold text-slate-900">{offer.title}</h3>
-          <p className="mt-1 text-sm leading-6 text-slate-600">{offer.description}</p>
+          <h3 className="text-xl font-semibold text-slate-900">
+            {offer.title}
+          </h3>
+          <p className="mt-1 text-sm leading-6 muted-text">
+            {offer.description}
+          </p>
         </article>
       ))}
 
-      <div className="border border-slate-300 bg-white p-4 text-left">
+      <div className="item-card text-left">
         <span className="inline-flex items-center justify-center border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700">
           Prices
         </span>
-        <div className="mt-3 space-y-1 text-left text-lg text-slate-600">
-          <p className="flex items-center justify-between gap-6">
+        <div className="mt-3 space-y-1 text-left text-lg muted-text">
+          <p className="summary-row">
             <span>Bread</span>
-            <span>{formatCurrency(1.1)}</span>
+            <span>$1.10</span>
           </p>
-          <p className="flex items-center justify-between gap-6">
+          <p className="summary-row">
             <span>Milk</span>
-            <span>{formatCurrency(0.5)}</span>
+            <span>$0.50</span>
           </p>
-          <p className="flex items-center justify-between gap-6">
+          <p className="summary-row">
             <span>Cheese</span>
-            <span>{formatCurrency(0.9)}</span>
+            <span>$0.90</span>
           </p>
-          <p className="flex items-center justify-between gap-6">
+          <p className="summary-row">
             <span>Soup</span>
-            <span>{formatCurrency(0.6)}</span>
+            <span>$0.60</span>
           </p>
-          <p className="flex items-center justify-between gap-6">
+          <p className="summary-row">
             <span>Butter</span>
-            <span>{formatCurrency(1.2)}</span>
+            <span>$1.20</span>
           </p>
         </div>
       </div>

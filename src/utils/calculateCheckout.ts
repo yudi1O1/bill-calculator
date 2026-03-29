@@ -1,67 +1,81 @@
+import { offers } from "../data/offers";
 import { productsById } from "../data/products";
-import type { AppliedOffer, BasketEntry, BasketLineSummary, CheckoutSummary } from "../types";
+import type {
+  AppliedOffer,
+  BasketEntry,
+  BasketLineSummary,
+  CheckoutSummary,
+} from "../types";
 
-const roundCurrency = (value: number): number =>
+const roundCurrency = (value: number) =>
   Math.round((value + Number.EPSILON) * 100) / 100;
 
+const getQuantity = (basket: BasketEntry[], productId: string) => {
+  const item = basket.find((entry) => entry.productId === productId);
+  return item ? item.quantity : 0;
+};
+
+const getOfferSavings = (basket: BasketEntry[], offer: typeof offers[number]) => {
+  const productPrice = productsById[offer.productId].price;
+  const productQuantity = getQuantity(basket, offer.productId);
+
+  if (offer.rule === "buyOneGetOneFree") {
+    const freeItemCount = Math.floor(productQuantity / 2);
+    return freeItemCount * productPrice;
+  }
+
+  if (offer.rule === "percentageOff") {
+    const discountPercent = offer.discountPercent || 0;
+    return productQuantity * productPrice * (discountPercent / 100);
+  }
+
+  if (offer.rule === "discountWithTriggerProduct") {
+    const triggerQuantity = getQuantity(basket, offer.triggerProductId || "");
+    const discountedItemCount = Math.min(triggerQuantity, productQuantity);
+    const discountPercent = offer.discountPercent || 0;
+    return discountedItemCount * productPrice * (discountPercent / 100);
+  }
+
+  if (offer.rule === "halfOffEverySecond") {
+    const discountedItemCount = Math.floor(productQuantity / 2);
+    return discountedItemCount * productPrice * 0.5;
+  }
+
+  return 0;
+};
+
 export const calculateCheckout = (basket: BasketEntry[]): CheckoutSummary => {
-  const lineItems: BasketLineSummary[] = basket
-    .filter((entry) => entry.quantity > 0)
-    .map((entry) => {
-      const product = productsById[entry.productId];
+  const lineItems: BasketLineSummary[] = [];
 
-      return {
-        product,
-        quantity: entry.quantity,
-        lineSubtotal: roundCurrency(product.price * entry.quantity),
-      };
-    });
+  for (const entry of basket) {
+    if (entry.quantity <= 0) {
+      continue;
+    }
 
-  const subtotal = roundCurrency(
-    lineItems.reduce((sum, item) => sum + item.lineSubtotal, 0),
-  );
+    const product = productsById[entry.productId];
 
-  const quantities = Object.fromEntries(
-    basket.map((entry) => [entry.productId, entry.quantity]),
-  ) as Record<keyof typeof productsById, number>;
+    lineItems.push({
+      product,
+      quantity: entry.quantity,
+      lineSubtotal: roundCurrency(product.price * entry.quantity),
+      });
+  }
+
+  const subtotal = roundCurrency(lineItems.reduce((sum, item) => sum + item.lineSubtotal, 0));
 
   const appliedOffers: AppliedOffer[] = [];
 
-  const cheeseSavings = roundCurrency(
-    Math.floor((quantities.cheese ?? 0) / 2) * productsById.cheese.price,
-  );
-  if (cheeseSavings > 0) {
-    appliedOffers.push({
-      id: "cheese-bogo",
-      title: "Cheese offer",
-      description: "Every second cheese is free.",
-      savings: cheeseSavings,
-    });
-  }
+  for (const offer of offers) {
+    const savings = roundCurrency(getOfferSavings(basket, offer));
 
-  const soupBreadPairs = Math.min(quantities.soup ?? 0, quantities.bread ?? 0);
-  const soupBreadSavings = roundCurrency(
-    soupBreadPairs * (productsById.bread.price / 2),
-  );
-  if (soupBreadSavings > 0) {
-    appliedOffers.push({
-      id: "soup-bread",
-      title: "Soup and bread",
-      description: `${soupBreadPairs} bread item(s) got a discount with soup.`,
-      savings: soupBreadSavings,
-    });
-  }
-
-  const butterSavings = roundCurrency(
-    (quantities.butter ?? 0) * (productsById.butter.price / 3),
-  );
-  if (butterSavings > 0) {
-    appliedOffers.push({
-      id: "butter-third-off",
-      title: "Butter deal",
-      description: "A discount was applied to each butter.",
-      savings: butterSavings,
-    });
+    if (savings > 0) {
+      appliedOffers.push({
+        id: offer.id,
+        productId: offer.productId,
+        title: offer.title,
+        savings,
+      });
+    }
   }
 
   const totalSavings = roundCurrency(

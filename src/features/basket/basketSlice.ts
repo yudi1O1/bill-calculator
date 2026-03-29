@@ -24,6 +24,7 @@ const basketSlice = createSlice({
   initialState,
   reducers: {
     addItem: (state, action: PayloadAction<ProductId>) => {
+      
       const item = state.items.find((entry) => entry.productId === action.payload);
 
       if (item) {
@@ -59,18 +60,10 @@ export const { addItem, removeItem, clearBasket, setBasket } = basketSlice.actio
 
 export const selectBasketItems = (state: RootState) => state.basket.items;
 
-export const selectBasketCount = (state: RootState) => {
-  let total = 0;
+export const selectBasketCount = (state: RootState) =>
+  state.basket.items.reduce((total, item) => total + item.quantity, 0);
 
-  state.basket.items.forEach((item) => {
-    total += item.quantity;
-  });
-
-  return total;
-};
-
-export const selectCheckoutSummary = (state: RootState) => {
-  return calculateCheckout(state.basket.items);
-};
+export const selectCheckoutSummary = (state: RootState) =>
+  calculateCheckout(state.basket.items);
 
 export default basketSlice.reducer;

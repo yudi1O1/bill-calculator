@@ -31,7 +31,7 @@ npm run dev
 
 ## Firebase setup
 
-Create a local `.env.local` file and add the Firebase web app configuration:
+Create local `.env.local` file and add the Firebase web app configuration:
 
 ```env
 FIREBASE_API_KEY=...
