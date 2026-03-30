@@ -19,7 +19,7 @@ A React + Redux Toolkit + TypeScript assignment project that lets a user select 
 - Save basket data in Firebase Firestore
 - Load saved basket data from Firebase Firestore
 - Responsive, polished UI
-- Unit tests for billing logic
+
 
 
 ## Run locally
