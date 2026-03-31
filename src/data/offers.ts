@@ -25,12 +25,4 @@ export const offers: Offer[] = [
     productId: "butter",
     discountPercent: 33.3333333333,
   },
-  {
-    id: "milk-50-off",
-    title: "Milk deal",
-    description: "For every two milk, get 50% off one milk.",
-    rule: "halfOffEverySecond",
-    productId: "milk",
-    discountPercent: 50,
-  },
 ];

@@ -3,7 +3,7 @@ import basketReducer from "./features/basket/basketSlice";
 
 export const store = configureStore({
   reducer: {
-    basket: basketReducer,
+    storeBasket: basketReducer,
   },
 });
 

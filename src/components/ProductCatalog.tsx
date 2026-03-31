@@ -1,11 +1,17 @@
 import { products } from "../data/products";
-import { addItem, selectBasketItems } from "../features/basket/basketSlice";
+import {
+  addItem,
+  selectBasketItems,
+  selectCheckoutSummary,
+  selectBudget,
+} from "../features/basket/basketSlice";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 
 export const ProductCatalog = () => {
   const dispatch = useAppDispatch();
   const basketItems = useAppSelector(selectBasketItems);
-
+  const summery = useAppSelector(selectCheckoutSummary);
+const budget = useAppSelector(selectBudget);
   // quantiy in basket for each product
   const getQuantity = (productId: string) => {
     const basketItem = basketItems.find((item) => item.productId === productId);
@@ -47,6 +53,7 @@ export const ProductCatalog = () => {
                 In basket: {getQuantity(product.id)}
               </span>
               <button
+                disabled={budget>0 && summery.finalTotal + product.price > budget}
                 className="primary-button"
                 type="button"
                 onClick={() => dispatch(addItem(product.id))}

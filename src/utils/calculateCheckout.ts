@@ -9,7 +9,10 @@ import type {
 const roundCurrency = (value: number): number =>
   Math.round((value + Number.EPSILON) * 100) / 100;
 
-const getQuantity = (basket: BasketEntry[], productId: BasketEntry["productId"]) => {
+const getQuantity = (
+  basket: BasketEntry[],
+  productId: BasketEntry["productId"],
+) => {
   const item = basket.find((entry) => entry.productId === productId);
   return item ? item.quantity : 0;
 };
@@ -68,6 +71,7 @@ const getButterOffer = (basket: BasketEntry[]): AppliedOffer | null => {
 };
 
 export const calculateCheckout = (basket: BasketEntry[]): CheckoutSummary => {
+  
   const lineItems: BasketLineSummary[] = basket
     .filter((entry) => entry.quantity > 0)
     .map((entry) => {
@@ -80,7 +84,9 @@ export const calculateCheckout = (basket: BasketEntry[]): CheckoutSummary => {
       };
     });
 
-  const subtotal = roundCurrency(lineItems.reduce((sum, item) => sum + item.lineSubtotal, 0));
+  const subtotal = roundCurrency(
+    lineItems.reduce((sum, item) => sum + item.lineSubtotal, 0),
+  );
 
   const appliedOffers = [
     getCheeseOffer(basket),
